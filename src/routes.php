@@ -1,10 +1,35 @@
 <?php
 // Routes
 
+//develop Tools only for localhost domain allow
+$app->get('/test/{action}', function ($request, $response, $args) {
+
+    if($_SERVER['REMOTE_ADDR'] != "127.0.0.1" && $_SERVER['REMOTE_ADDR'] != "::1"){
+        return;
+    }
+
+    switch ($args['action']) {
+        case "killer":
+            session_destroy();
+            echo "session_destroy";
+            break;
+
+        case "fake":
+            $_SESSION['User'] = "MiMi";
+            echo "SESSION['User'] = \"MiMi\"";
+            break;
+    }
+});
+
+
 //首頁
 $app->get('/', function ($request, $response, $args) {
+    require_once '../lib/helper.php';
+    $isLogged = isLogged();
+    $user = getUserName();
+
     // Render index view
-    $response = $this->view->render($response, 'view/header.twig');
+    $response = $this->view->render($response, 'view/header.twig', ['isLogged' => $isLogged,'user'=>$user]);
     $response = $this->view->render($response, 'index.twig');
     $response = $this->view->render($response, 'view/footer.twig');
 
@@ -21,7 +46,6 @@ $app->get('/environment', function ($request, $response, $args) {
     return $response;
 });
 
-
 //產品頁面
 $app->get('/product', function ($request, $response, $args) {
     require_once '../lib/mysql.php';
@@ -31,8 +55,9 @@ $app->get('/product', function ($request, $response, $args) {
     $products = array();
     $sql = "SELECT * FROM `products` LIMIT 0,50";
     $result = $db->query($sql);
+
     if ($result->num_rows <= 0) {
-        echo '查無此帳號...<br><a href="login.php">回上一頁</a>';
+        echo '查無此帳號...<br><a href="login.twig">回上一頁</a>';
         return;
     }
     while ($row = mysqli_fetch_array($result)) {
@@ -40,7 +65,7 @@ $app->get('/product', function ($request, $response, $args) {
     }
 
     $response = $this->view->render($response, 'view/header.twig');
-    $response = $this->view->render($response, 'product.twig',['products'=>$products]);
+    $response = $this->view->render($response, 'product.twig', ['products' => $products]);
     $response = $this->view->render($response, 'view/footer.twig');
 
     return $response;
@@ -50,15 +75,13 @@ $app->get('/product', function ($request, $response, $args) {
 $app->get('/product/{id}', function ($request, $response, $args) {
     require_once '../lib/mysql.php';
 
-//消毒
-
+    //消毒
     $db = connect_db();
+    $args['id'] = mysqli_real_escape_string($db, $args['id']);
 
-    $args['id'] = mysqli_real_escape_string($db,$args['id']);
-
-//取得商品資料
+    //取得商品資料
     $detail = array();
-    $sql = "SELECT * FROM `products` WHERE `product_id` = '".$args['id']."' LIMIT 0,50";
+    $sql = "SELECT * FROM `products` WHERE `product_id` = '" . $args['id'] . "' LIMIT 0,50";
     $result = $db->query($sql);
 
     while ($row = mysqli_fetch_array($result)) {
@@ -69,9 +92,52 @@ $app->get('/product/{id}', function ($request, $response, $args) {
     }
 
     $response = $this->view->render($response, 'view/header.twig');
-    $response = $this->view->render($response, 'buyme.twig',['detail'=>$detail]);
+    $response = $this->view->render($response, 'buyme.twig', ['detail' => $detail]);
     $response = $this->view->render($response, 'view/footer.twig');
     return $response;
 
 });
 
+
+//login(get)
+$app->get('/member/login', function ($request, $response, $args) {
+    // Render index view
+    $response = $this->view->render($response, 'view/header.twig');
+    $response = $this->view->render($response, 'member/login.twig');
+    $response = $this->view->render($response, 'view/footer.twig');
+
+    return $response;
+});
+
+//login(post)
+$app->post('/member/login', function ($request, $response, $args) {
+    require_once '../lib/mysql.php';
+    $db = connect_db();
+    $member = array();
+    $data = $request->getParsedBody();
+
+    $password = $data['password'];
+    $account = $data['account'];
+    $sql = "SELECT `account`,`password`,`name` FROM `member` WHERE `account` = '$account' LIMIT 0,1";
+
+    $result = $db-> query($sql);
+
+
+    if ($result->num_rows<=0){
+        echo '查無此帳號...<br><a href="member/login">回上一頁</a>';
+        return;
+    }
+
+    while ($row = mysqli_fetch_assoc($result)){
+        if ($row['password'] == $password) {
+            //比對帳密正確
+            //session登入 require helper 跳轉頁面
+
+            return;
+        }else{
+            echo '警告：密碼錯誤';
+            return;
+        }
+    }
+
+});

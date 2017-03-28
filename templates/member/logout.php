@@ -1,0 +1,6 @@
+<?php
+include '../common/common.php';
+
+session_destroy();
+
+header("Location: http://localhost/");
