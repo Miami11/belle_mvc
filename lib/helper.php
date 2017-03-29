@@ -23,3 +23,8 @@ function setLoginByUserName($name = ""){
         $_SESSION['User'] = $name;
     }
 }
+
+function logout(){
+    session_destroy();
+
+}

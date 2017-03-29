@@ -113,8 +113,8 @@ $app->get('/member/login', function ($request, $response, $args) {
 $app->post('/member/login', function ($request, $response, $args) {
     require_once '../lib/mysql.php';
     $db = connect_db();
-    $member = array();
     $data = $request->getParsedBody();
+    $error = "";
 
     $password = $data['password'];
     $account = $data['account'];
@@ -122,22 +122,35 @@ $app->post('/member/login', function ($request, $response, $args) {
 
     $result = $db-> query($sql);
 
-
     if ($result->num_rows<=0){
-        echo '查無此帳號...<br><a href="member/login">回上一頁</a>';
-        return;
-    }
+        $error = '查無此帳號';
+    }else{
+        while ($row = mysqli_fetch_assoc($result)){
 
-    while ($row = mysqli_fetch_assoc($result)){
-        if ($row['password'] == $password) {
-            //比對帳密正確
-            //session登入 require helper 跳轉頁面
-
-            return;
-        }else{
-            echo '警告：密碼錯誤';
-            return;
+            if ($row['password'] == $password) {
+                require_once '../lib/helper.php';
+                //比對帳密正確
+                setLoginByUserName($row['name']);
+                return $response->withStatus(302)->withHeader('Location', '/');
+            }else{
+                $error = '密碼錯誤';
+            }
         }
     }
+
+    $response = $this->view->render($response, 'view/header.twig');
+    $response = $this->view->render($response, 'member/login.twig',["error"=>$error]);
+    $response = $this->view->render($response, 'view/footer.twig');
+
+    return $response;
+
+});
+
+
+$app->get('/member/logout', function ($request, $response, $args) {
+    require_once '../lib/helper.php';
+
+    logout();
+    return $response->withStatus(302)->withHeader('Location', '/');
 
 });

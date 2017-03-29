@@ -41,7 +41,7 @@
         </div>
 
         <nav id="main_nav">
-            <a href="../index.twig">
+            <a href="/">
                 <div class="logo">
                     <img src="{{ __DIR__ }}/assets/images/belle_logo.png" alt="">
                 </div>
@@ -57,7 +57,7 @@
             <ul>
                 {% if isLogged == true  %}
                     <li><a class="login" href="#">{{ user }}會員您好</a></li>
-                    <li><a href="../member/logout.php">登出</a></li>
+                    <li><a href="/member/logout">登出</a></li>
                 {% else  %}
                     <li><a class="login" href="/member/login"><i class="fa fa-user" aria-hidden="true"></i>會員登入</a></li>
                 {% endif %}
