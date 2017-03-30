@@ -1,5 +1,7 @@
 <?php
 // Routes
+require_once '../lib/mysql.php';
+require_once '../lib/helper.php';
 
 //develop Tools only for localhost domain allow
 $app->get('/test/{action}', function ($request, $response, $args) {
@@ -39,6 +41,7 @@ $app->get('/', function ($request, $response, $args) {
 //環境介紹
 $app->get('/environment', function ($request, $response, $args) {
     // Render index view
+    // need refactor to controller type 2017/3/30
     $response = $this->view->render($response, 'view/header.twig');
     $response = $this->view->render($response, 'environment.twig');
     $response = $this->view->render($response, 'view/footer.twig');
@@ -48,27 +51,7 @@ $app->get('/environment', function ($request, $response, $args) {
 
 //產品頁面
 $app->get('/product', function ($request, $response, $args) {
-    require_once '../lib/mysql.php';
-    $db = connect_db();
-
-    //取得商品資料
-    $products = array();
-    $sql = "SELECT * FROM `products` LIMIT 0,50";
-    $result = $db->query($sql);
-
-    if ($result->num_rows <= 0) {
-        echo '查無此帳號...<br><a href="login.twig">回上一頁</a>';
-        return;
-    }
-    while ($row = mysqli_fetch_array($result)) {
-        $products[] = $row;
-    }
-
-    $response = $this->view->render($response, 'view/header.twig');
-    $response = $this->view->render($response, 'product.twig', ['products' => $products]);
-    $response = $this->view->render($response, 'view/footer.twig');
-
-    return $response;
+    return controller("product",$this)->run();
 });
 
 //產品細節
@@ -111,7 +94,6 @@ $app->get('/member/login', function ($request, $response, $args) {
 
 //login(post)
 $app->post('/member/login', function ($request, $response, $args) {
-    require_once '../lib/mysql.php';
     $db = connect_db();
     $data = $request->getParsedBody();
     $error = "";
@@ -128,7 +110,6 @@ $app->post('/member/login', function ($request, $response, $args) {
         while ($row = mysqli_fetch_assoc($result)){
 
             if ($row['password'] == $password) {
-                require_once '../lib/helper.php';
                 //比對帳密正確
                 setLoginByUserName($row['name']);
                 return $response->withStatus(302)->withHeader('Location', '/');
@@ -148,7 +129,7 @@ $app->post('/member/login', function ($request, $response, $args) {
 
 
 $app->get('/member/logout', function ($request, $response, $args) {
-    require_once '../lib/helper.php';
+
 
     logout();
     return $response->withStatus(302)->withHeader('Location', '/');
