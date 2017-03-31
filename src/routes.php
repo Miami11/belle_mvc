@@ -19,6 +19,16 @@ $app->get('/test/{action}', function ($request, $response, $args) {
 });
 
 //首頁
-$app->get('/', function ($request, $response, $args) {
+$app->get('/', function ($request, $response, $args){
     return controller('home',$this)->run();
 });
+
+$app->get('/admin', function ($request, $response, $args) {
+    return controller('admin',$this)->run();
+
+});
+
+$app->get('/admin/login', function ($request, $response, $args) {
+    return controller('admin',$this)->run("login");
+});
+

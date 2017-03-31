@@ -14,10 +14,24 @@ class adminController
         $this->args = $this->args;
     }
 
-    function run()
+    function run($action = "")
     {
         $db = getDB();
-        $this->response = $this->view->render($this->response, 'index.twig');
+
+        switch ($action){
+            case "login":
+                $this->login();
+                break;
+            default:
+                $this->response = $this->view->render($this->response, 'admin/index.twig');
+                break;
+        }
+
+        return $this->response;
+    }
+
+    private function login(){
+        $this->response = $this->view->render($this->response, 'admin/login.twig');
         return $this->response;
     }
 }
