@@ -1,25 +1,27 @@
 <?php
-//function connect_db() {
-//    $server = 'localhost'; // this may be an ip address instead
-//    $user = 'root';
-//    $pass = 'fzwV9d4G';
-//    $database = 'belle';
-//    $connection = new mysqli($server, $user, $pass, $database);
-//
-//    return $connection;
-//}
 
 use Medoo\Medoo;
 
 // Initialize
 function getDB()
 {
-    return new Medoo([
-        'database_type' => 'mysql',
-        'database_name' => 'belle',
-        'server' => 'localhost',
-        'username' => 'root',
-        'password' => 'fzwV9d4G',
-        'charset' => 'utf8'
-    ]);
+    $locallist = array(
+        '127.0.0.1',
+        '::1'
+    );
+
+    if (!in_array($_SERVER['REMOTE_ADDR'], $locallist)) {
+        //setting production db connect
+    } else {
+        return new Medoo([
+            'database_type' => 'mysql',
+            'database_name' => 'belle',
+            'server' => 'localhost',
+            'username' => 'root',
+            'password' => 'root',
+            'socket' => '/Applications/MAMP/tmp/mysql/mysql.sock',
+            'charset' => 'utf8'
+        ]);
+    }
+
 }
